@@ -17,10 +17,20 @@ const commandSchema = new mongoose.Schema({
         trim: true
     },
 
-    examples: {
-        type: [String],
-        required: true
-    },
+    examples: [
+    {
+        text: {
+            type: String,
+            required: true
+        },
+
+        embedding: {
+            type: [Number],
+            default: []
+        }
+    }
+    
+    ],
 
     operation: {
         type: String,

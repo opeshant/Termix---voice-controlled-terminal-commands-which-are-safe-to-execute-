@@ -1,31 +1,13 @@
-
 import Command from '../models/command.model.js';
 
-// Convert text into lowercase words
-const normalizeText = (text) => {
-    return text
-        .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .split(/\s+/)
-        .filter(word => word.length > 0);
-};
+import { generateEmbedding } from './embedding.service.js';
 
-// Calculate similarity between two sentences
-const calculateSimilarity = (text1, text2) => {
-    const words1 = new Set(normalizeText(text1));
-    const words2 = new Set(normalizeText(text2));
-
-    const commonWords = [...words1].filter(word =>
-        words2.has(word)
-    );
-
-    const allWords = new Set([...words1, ...words2]);
-
-    return commonWords.length / allWords.size;
-};
+import { cosineSimilarity } from './cosineSimilarity.service.js';
 
 // Find the best matching command
 export const matchCommand = async (userText) => {
+
+    const userEmbedding = await generateEmbedding(userText);
 
     const commands = await Command.find({
         isEnabled: true
@@ -38,20 +20,23 @@ export const matchCommand = async (userText) => {
 
         for (const example of command.examples) {
 
-            const score = calculateSimilarity(
-                userText,
-                example
+            const score = cosineSimilarity(
+                userEmbedding,
+                example.embedding
             );
 
             if (score > highestScore) {
+
                 highestScore = score;
+
                 bestMatch = command;
             }
         }
     }
 
     // Reject weak matches
-    if (highestScore < 0.30) {
+    if (highestScore < 0.40) {
+
         return {
             matched: false,
             message: 'No suitable command found'
