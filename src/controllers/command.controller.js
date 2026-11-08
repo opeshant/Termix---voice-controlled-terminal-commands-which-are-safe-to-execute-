@@ -63,3 +63,29 @@ export const createCommand = async (req, res) => {
         });
     }
 };
+
+
+export const getAllCommands = async (req, res) => {
+    try {
+        const commands = await Command.find({
+            isEnabled: true
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Commands fetched successfully',
+            totalCommands: commands.length,
+            data: commands
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+
+
