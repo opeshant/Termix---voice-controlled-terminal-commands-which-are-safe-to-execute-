@@ -1,5 +1,6 @@
 
 import Command from '../models/command.model.js';
+import { matchCommand } from '../services/commandMatching.service.js';
 
 export const createCommand = async (req, res) => {
     try {
@@ -85,6 +86,50 @@ export const getAllCommands = async (req, res) => {
         });
     }
 };
+
+
+export const findMatchingCommand = async (req, res) => {
+    try {
+        const { userText } = req.body;
+
+        // Validate input
+        if (!userText || typeof userText !== 'string' || !userText.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide a valid voice instruction'
+            });
+        }
+
+        // Find matching command
+        const result = await matchCommand(userText.trim());
+
+        if (!result.matched) {
+            return res.status(404).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Command matched successfully',
+            data: {
+                intent: result.command.intent,
+                operation: result.command.operation,
+                score: result.score,
+                riskLevel: result.command.riskLevel,
+                requiresConfirmation: result.command.requiresConfirmation
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 
 
 
